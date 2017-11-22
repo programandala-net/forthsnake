@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.14.0+201711221924" ;
+: version s" 0.15.0+201711221959" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -34,11 +34,11 @@
 \ ==============================================================
 \ Requirements
 
-require galope/unhome.fs \ `unhome`.
+require galope/random-within.fs \ `random-within`.
+require galope/unhome.fs        \ `unhome`.
 
 \ ==============================================================
 
-: random-range ( n1 n2 -- n3 ) over - utime + swap mod + ;
 
 variable delay
   \ Crawl delay in ms.
@@ -109,8 +109,8 @@ variable length
   \ Does the head cross segment _a_?
 
 : random-coordinates ( -- col row )
-  1 arena-width  random-range
-  1 arena-height random-range ;
+  1 arena-width  random-within
+  1 arena-height random-within ;
 
 : new-apple ( -- ) random-coordinates apple 2! ;
   \ Locate a new apple.
