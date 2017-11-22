@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.9.0+201711221742" ;
+: version s" 0.10.0+201711221754" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -72,6 +72,10 @@ variable length
 
 : head ( -- a ) 0 segment ;
   \ Return address _a_ of the snake's head segment.
+
+: neck ( -- a ) 1 segment ;
+  \ Return address _a_ of the snake's "neck" segment, ie.
+  \ the segment after the head.
 
 : tail ( -- a ) length @ segment ;
   \ Return address _a_ of the snake's tail segment.
@@ -148,15 +152,14 @@ variable length
 : .head ( -- ) head 2@ at-xy ." O" ;
   \ Display the head of the snake.
 
+: .neck ( -- ) neck 2@ at-xy ." o" ;
+  \ Display the "neck" of the snake, ie. the first segment
+  \ after the head.
+
 : -tail ( -- ) tail 2@ at-xy space ;
   \ Delete the tail of the snake.
 
-: .body ( -- )
-  length @ 1- 1 ?do i segment 2@ at-xy ." o" loop ;
-  \ Display the body of the snake, ie. not including the
-  \ head and the tail.
-
-: .snake ( -- ) .head .body -tail unhome ;
+: .snake ( -- ) .head .neck -tail unhome ;
   \ Display the snake.
 
 : init-arena ( -- ) page .wall .snake .apple .score ;
@@ -272,4 +275,5 @@ run
 \ (https://github.com/robertpfeiffer/forthsnake). Change source
 \ style.  Rename words. Factor. Use constants and variables.
 \ Use full screen. Draw the head apart. Document. Simplify
-\ handling of directions. Remove flickering.
+\ handling of directions. Remove flickering. Accelerate the
+\ drawing of the snake.
