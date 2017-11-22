@@ -17,6 +17,5 @@
 - Improve layout of the arena (put the status bar at the top and add a
   title).
 - Improve the look of the score.
-- Create an actual score, the count of eaten apples, minus the
-  changings of direction.
+- Improve scoring: subtract the changings of direction.
 - Add record.

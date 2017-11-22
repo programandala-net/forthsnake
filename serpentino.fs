@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.15.0+201711221959" ;
+: version s" 0.16.0+201711222020" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -39,6 +39,7 @@ require galope/unhome.fs        \ `unhome`.
 
 \ ==============================================================
 
+variable score
 
 variable delay
   \ Crawl delay in ms.
@@ -118,8 +119,9 @@ variable length
 rows 1- constant score-y ( -- row )
   \ Row where the score is displayed.
 
-: .score ( -- ) 0 score-y at-xy length ? ;
-  \ Display the score (the current length of the snake).
+: .score ( -- ) 0 score-y at-xy
+                score @ s>d <# # # # # #> type ;
+  \ Display the score.
 
 : grow ( -- ) length @ 1+ max-length min length ! ;
   \ Grow the snake.
@@ -201,7 +203,8 @@ rows 1- constant score-y ( -- row )
 : init-delay ( -- ) initial-delay delay ! ;
   \ Init the delay.
 
-: init ( -- ) init-delay new-snake new-apple init-arena ;
+: init ( -- )
+  score off init-delay new-snake new-apple init-arena ;
   \ Init the game.
 
 k-down  value down-key
@@ -240,7 +243,10 @@ k-up    value up-key
 : faster ( -- ) delay @ acceleration - 0 max delay ! ;
   \ Decrement the delay.
 
-: eat ( -- ) grow faster .score new-apple .apple ;
+: scored ( -- ) 1 score +! .score ;
+  \ Increase and display the score.
+
+: eat ( -- ) grow faster scored new-apple .apple ;
   \ Eat the apple.
 
 : ?eat ( -- ) apple? if eat then ;
