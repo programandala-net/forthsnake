@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.11.0+201711221818" ;
+: version s" 0.12.0+201711221830" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -43,6 +43,9 @@ variable delay
 
 8 constant acceleration
   \ Delay decrement.
+
+3 constant initial-length
+  \ Initial length of the snake.
 
 200 constant max-length
   \ Maximum length of the snake.
@@ -100,11 +103,11 @@ variable length
 rows 1- constant score-y ( -- row )
   \ Row where the score is displayed.
 
-: .score ( -- )  0 score-y at-xy length ? ;
+: .score ( -- ) 0 score-y at-xy length ? ;
   \ Display the score (the current length of the snake).
 
-: grow ( -- ) 1 length +! ;
-  \ Grow the snake and update the score.
+: grow ( -- ) length @ 1+ max-length min length ! ;
+  \ Grow the snake.
 
 : .apple ( -- ) apple 2@ at-xy ." Q" ;
   \ Display the apple.
@@ -172,10 +175,9 @@ rows 1- constant score-y ( -- row )
   \ Init the arena.
 
 : new-snake ( -- )
-  head> off 3 length !
+  head> off initial-length length !
   arena-width 2/ arena-height 2/ snake 2!
-  up direction 2!
-  left crawl left crawl left crawl left crawl ;
+  up direction 2!  up crawl up crawl up crawl up crawl ;
   \ Create a new snake with default values (length, position
   \ and direction).
 
