@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.8.0+201711221727" ;
+: version s" 0.9.0+201711221742" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -145,10 +145,18 @@ variable length
 : unhome ( -- ) cols 1- rows 1- at-xy ;
   \ Set the cursor at the bottom right position of the screen.
 
-: .snake ( -- )
-  head 2@ at-xy ." O"
-  length @ 1- 1 ?do i segment 2@ at-xy ." o" loop
-  tail 2@ at-xy space unhome ;
+: .head ( -- ) head 2@ at-xy ." O" ;
+  \ Display the head of the snake.
+
+: -tail ( -- ) tail 2@ at-xy space ;
+  \ Delete the tail of the snake.
+
+: .body ( -- )
+  length @ 1- 1 ?do i segment 2@ at-xy ." o" loop ;
+  \ Display the body of the snake, ie. not including the
+  \ head and the tail.
+
+: .snake ( -- ) .head .body -tail unhome ;
   \ Display the snake.
 
 : init-arena ( -- ) page .wall .snake .apple .score ;
