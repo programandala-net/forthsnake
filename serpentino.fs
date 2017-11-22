@@ -1,6 +1,7 @@
 #! /usr/bin/env gforth
 
 \ Serpentino
+: version s" 0.7.0+201711221632" ;
 
 \ Description: A simple snake game written in Forth for Gforth
 \ and Solo Forth. Under development.
@@ -9,7 +10,7 @@
 \ http://programandala.net
 \ http://github.com/programandala-net/serpentino
 
-\ Last modified 201711221451
+\ Last modified 201711221611
 \ See change log at the end of the file
 
 \ =============================================================
@@ -133,32 +134,60 @@ variable length
 
 : init ( -- ) initial-delay delay ! new-snake new-apple ;
 
-: (rudder) ( -- n1 n2 )
-  key case
-    '4' of left  endof
-    '6' of up    endof
-    '5' of right endof
-    '7' of down  endof
-    direction 2@ rot
-  endcase ;
+k-down  value down-key
+k-left  value left-key
+k-right value right-key
+k-up    value up-key
 
-: rudder ( -- n1 n2 ) key? if   (rudder) 2dup direction 2!
-                           else direction 2@ then ;
+: key>direction ( u -- n1 n2 )
+  case
+    down-key  of down  endof
+    left-key  of left  endof
+    right-key of right endof
+    up-key    of up    endof
+    direction 2@ rot
+   endcase ;
+
+: (rudder) ( -- n1 n2 )
+  ekey ekey>fkey if   key>direction 2dup direction 2!
+                 else direction 2@ then ;
+
+: rudder ( -- n1 n2 ) ekey? if   (rudder)
+                            else direction 2@ then ;
 
 : lazy ( -- ) delay @ ms ;
 
 : (game) ( -- ) render lazy rudder step
                 apple? if eat-apple then ;
 
-: type-center ( ca len -- ) cols over - 2/ rows 2/ at-xy type ;
+: center-y ( -- row ) rows 2/ ;
 
-: game-over ( -- ) s" **** GAME OVER **** " type-center
+: center-x ( len -- col ) cols swap - 2/ ;
+
+: center-xy ( len -- col row ) center-x center-y ;
+
+: at-center-xy ( len -- ) center-xy at-xy ;
+
+: type-center ( ca len -- ) dup at-center-xy type ;
+
+: +type-center ( ca len n -- )
+  >r dup center-xy r> + at-xy type ;
+
+: unhome ( -- ) cols 1- rows 1- at-xy ;
+  \ Set the cursor at the bottom right position of the screen.
+
+: game-over ( -- ) s" **** GAME OVER **** " type-center unhome
                    2000 ms key drop ;
 
 : game ( -- ) begin (game) dead? until game-over ;
 
+: version$ ( -- ca len ) s" Version " version s+ ;
+
 : splash-screen ( -- )
-  page s" oooO SERPENTINO Oooo" type-center space 2000 ms ;
+  page s" ooO SERPENTINO Ooo" -2 +type-center
+                         version$ type-center
+         s" programandala.net" 2 +type-center unhome
+  2000 ms ;
 
 : run ( -- ) begin splash-screen init game again ;
 
