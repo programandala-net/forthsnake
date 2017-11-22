@@ -9,7 +9,7 @@
 \ http://programandala.net
 \ http://github.com/programandala-net/serpentino 
 
-\ Last modified 201711221329
+\ Last modified 201711221336
 
 \ =============================================================
 \ License
@@ -99,19 +99,20 @@ variable direction
 
 : dead? ( -- f ) wall? crossing? or ;
 
-: draw-frame ( -- )
+: .frame ( -- )
   0 0 at-xy
   arena-width  0 ?do ." +" loop
   arena-height 0 ?do arena-width i at-xy ." +" cr ." +" loop
   arena-width  0 ?do ." +" loop cr ;
 
-: draw-snake ( -- )
-  length @ 0 ?do i segment 2@ at-xy ." #" loop ;
+: .snake ( -- )
+  0 segment 2@ at-xy ." O"
+  length @ 1 ?do i segment 2@ at-xy ." #" loop ;
 
-: draw-apple ( -- ) apple 2@ at-xy ." Q" ;
+: .apple ( -- ) apple 2@ at-xy ." Q" ;
 
 : render ( -- )
-  page draw-snake draw-apple draw-frame cr length @ . ;
+  page .snake .apple .frame cr length @ . ;
 
 : init ( -- )
   0 head !
@@ -153,4 +154,4 @@ page
 \ 2017-11-22: Fork from Robert Pfeiffer's forthsnake
 \ (https://github.com/robertpfeiffer/forthsnake). Change source
 \ style.  Rename words. Factor. Use constants and variables.
-\ Use full screen.
+\ Use full screen. Draw the head apart.
