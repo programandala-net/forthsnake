@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.16.0+201711222020" ;
+: version s" 0.17.0+201711222054" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -34,8 +34,9 @@
 \ ==============================================================
 \ Requirements
 
-require galope/random-within.fs \ `random-within`.
-require galope/unhome.fs        \ `unhome`.
+require galope/minus-keys.fs    \ `-keys`
+require galope/random-within.fs \ `random-within`
+require galope/unhome.fs        \ `unhome`
 
 \ ==============================================================
 
@@ -66,8 +67,13 @@ variable delay
 (max-length) value max-length
   \ Maximum length of the snake.
 
+1 constant arena-x
+1 constant arena-y
+  \ Coordinates of the top-left of the arena, not including
+  \ the wall.
+
 cols 2 - constant arena-width
-rows 3 - constant arena-height
+rows 3 - constant arena-length
   \ Size of the arena, not including the wall.
 
 2 cells constant /segment
@@ -111,7 +117,7 @@ variable length
 
 : random-coordinates ( -- col row )
   1 arena-width  random-within
-  1 arena-height random-within ;
+  1 arena-length random-within ;
 
 : new-apple ( -- ) random-coordinates apple 2! ;
   \ Locate a new apple.
@@ -119,7 +125,16 @@ variable length
 rows 1- constant score-y ( -- row )
   \ Row where the score is displayed.
 
-: .score ( -- ) 0 score-y at-xy
+: score$ ( -- ca len ) s" SCORE " ;
+  \ Return the score label _ca len_.
+
+: score-xy ( -- col row ) 0 score-y ;
+  \ Return the coordinates _col row_ of the score label.
+
+: .score$ ( -- ) score-xy at-xy score$ type ;
+  \ Display the score label.
+
+: .score ( -- ) [ score-xy >r score$ nip + r> ] 2literal at-xy
                 score @ s>d <# # # # # #> type ;
   \ Display the score.
 
@@ -151,8 +166,8 @@ rows 1- constant score-y ( -- row )
  0 -1 2constant up
   \ Up direction coordinate increments.
 
-: wall? ( -- f ) head 2@ 1 arena-height within swap
-                         1 arena-width  within and 0= ;
+: wall? ( -- f ) head 2@ arena-y arena-length within swap
+                         arena-x arena-width  within and 0= ;
   \ Has the snake crash the wall?
 
 : crossing? ( -- f )
@@ -169,7 +184,7 @@ rows 1- constant score-y ( -- row )
 : .wall ( -- )
   0 0 at-xy
   arena-width  0 ?do ." +" loop
-  arena-height 0 ?do arena-width i at-xy ." +" cr ." +" loop
+  arena-length 0 ?do arena-width i at-xy ." +" cr ." +" loop
   arena-width  0 ?do ." +" loop cr ;
   \ Display the wall.
 
@@ -185,7 +200,8 @@ rows 1- constant score-y ( -- row )
 : .snake ( -- ) .head .neck -tail unhome ;
   \ Display the snake.
 
-: init-arena ( -- ) page .wall .score .apple .snake ;
+: init-arena ( -- )
+  page .wall .score$ .score .apple .snake ;
   \ Init the arena.
 
 : init-max-length ( -- ) (max-length) to max-length ;
@@ -195,7 +211,7 @@ rows 1- constant score-y ( -- row )
 : new-snake ( -- )
   init-max-length
   head> off initial-length length !
-  arena-width 2/ arena-height 2/ snake 2!
+  arena-width 2/ arena-length 2/ snake 2!
   up direction 2!  up crawl up crawl up crawl up crawl ;
   \ Create a new snake with default values (length, position
   \ and direction).
@@ -277,7 +293,7 @@ k-up    value up-key
   \ but adding row offset _n_.
 
 : game-over ( -- ) s" **** GAME OVER **** " type-center unhome
-                   2000 ms key drop ;
+                   500 ms -keys key drop ;
 
 : (game) ( -- ) .snake lazy rudder crawl ?eat ;
   \ Game cycle.
@@ -310,4 +326,4 @@ run
 \ style.  Rename words. Factor. Use constants and variables.
 \ Use full screen. Draw the head apart. Document. Simplify
 \ handling of directions. Remove flickering. Accelerate the
-\ drawing of the snake.
+\ drawing of the snake. Add an actual scoring.
