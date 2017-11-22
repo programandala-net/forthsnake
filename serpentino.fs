@@ -1,7 +1,9 @@
 #! /usr/bin/env gforth
 
 \ Serpentino
-: version s" 0.7.0+201711221632" ;
+
+: version s" 0.8.0+201711221710" ;
+\ See change log at the end of the file.
 
 \ Description: A simple snake game written in Forth for Gforth
 \ and Solo Forth. Under development.
@@ -9,9 +11,6 @@
 \ Author: Marcos Cruz (programandala.net)
 \ http://programandala.net
 \ http://github.com/programandala-net/serpentino
-
-\ Last modified 201711221611
-\ See change log at the end of the file
 
 \ =============================================================
 \ License
@@ -31,10 +30,10 @@
 : random-range ( n1 n2 -- n3 ) over - utime + swap mod + ;
 
 variable delay
-  \ Frame delay in ms.
+  \ Crawl delay in ms.
 
 200 constant initial-delay
-  \ Initial value of `delay`, in ms.
+  \ Initial crawl delay in ms.
 
 200 constant max-length
   \ Maximum length of the snake.
@@ -66,7 +65,10 @@ variable length
   \ Convert segment number _n_ to its address _a_.
 
 : head ( -- a ) 0 segment ;
-  \ _a_ is the address of the head segment.
+  \ Return address _a_ of the snake's head segment.
+
+: tail ( -- a ) length @ segment ;
+  \ Return address _a_ of the snake's tail segment.
 
 : clash? ( a1 a2 -- f ) 2@ rot 2@ d= ;
   \ Are the coordinates contained in _a1_ equal to the
@@ -80,9 +82,14 @@ variable length
 
 : new-apple ( -- ) random-coordinates apple 2! ;
 
-: grow ( -- ) 1 length +! ;
+: .score ( -- ) 0 rows 1- at-xy length ? ;
+  \ Display the score (the current length of the snake).
 
-: eat-apple ( -- ) grow new-apple ;
+: grow ( -- ) 1 length +! .score ;
+  \ Grow the snake and update the score.
+
+: .apple ( -- ) apple 2@ at-xy ." Q" ;
+  \ Display the apple.
 
 : coords+ ( n1 n2 x1 y1 -- x2 y2 ) rot + -rot + swap ;
   \ Update coordinates _x1 y1_ with increments _n1 n2_,
@@ -90,7 +97,9 @@ variable length
 
 : move-head ( -- ) head> @ 1- max-length mod head> ! ;
 
-: step ( n1 n2 -- ) head 2@ move-head coords+ head 2! ;
+: crawl ( n1 n2 -- ) head 2@ move-head coords+ head 2! ;
+  \ Update the snake's position with coordinate increments _n1
+  \ n2_.
 
 -1  0 2constant left
 
@@ -101,43 +110,54 @@ variable length
  0 -1 2constant up
 
 : wall? ( -- f ) head 2@ 1 arena-height within swap
-                          1 arena-width  within and 0= ;
+                         1 arena-width  within and 0= ;
+  \ Has the snake crash the wall?
 
 : crossing? ( -- f )
   length @ 1 ?do  i segment cross? if unloop true exit then
              loop false ;
 
 : apple? ( -- f ) head apple clash? ;
+  \ Has the snake found the apple?
 
 : dead? ( -- f ) wall? crossing? or ;
+  \ Is the snake dead?
 
-: .frame ( -- )
+: .wall ( -- )
   0 0 at-xy
   arena-width  0 ?do ." +" loop
   arena-height 0 ?do arena-width i at-xy ." +" cr ." +" loop
   arena-width  0 ?do ." +" loop cr ;
+  \ Display the wall.
+
+: unhome ( -- ) cols 1- rows 1- at-xy ;
+  \ Set the cursor at the bottom right position of the screen.
 
 : .snake ( -- )
-  0 segment 2@ at-xy ." O"
-  length @ 1 ?do i segment 2@ at-xy ." o" loop ;
+  head 2@ at-xy ." O"
+  length @ 1- 1 ?do i segment 2@ at-xy ." o" loop
+  tail 2@ at-xy space unhome ;
+  \ Display the snake.
 
-: .apple ( -- ) apple 2@ at-xy ." Q" ;
-
-: render ( -- )
-  page .snake .apple .frame cr length @ . ;
+: init-arena ( -- ) page .wall .snake .apple .score ;
 
 : new-snake ( -- )
   head> off 3 length !
   arena-width 2/ arena-height 2/ snake 2!
   up direction 2!
-  left step left step left step left step ;
+  left crawl left crawl left crawl left crawl ;
+  \ Create a new snake with default values (length, position
+  \ and direction).
 
-: init ( -- ) initial-delay delay ! new-snake new-apple ;
+: init-delay ( -- ) initial-delay delay ! ;
+
+: init ( -- ) init-delay new-snake new-apple init-arena ;
 
 k-down  value down-key
 k-left  value left-key
 k-right value right-key
 k-up    value up-key
+  \ Keyboard events used as direction keys.
 
 : key>direction ( u -- n1 n2 )
   case
@@ -147,47 +167,71 @@ k-up    value up-key
     up-key    of up    endof
     direction 2@ rot
    endcase ;
+   \ If keyboard event _u_ is a valid direction key, return its
+   \ corresponding direction _n1 n2_; otherwise return the
+   \ current direction.
 
 : (rudder) ( -- n1 n2 )
   ekey ekey>fkey if   key>direction 2dup direction 2!
                  else direction 2@ then ;
+  \ Use the latest keyboard event to update the current
+  \ direction and return it as _n1 n2_.  If the keyboard event
+  \ is not valid, return the current direction.
 
 : rudder ( -- n1 n2 ) ekey? if   (rudder)
                             else direction 2@ then ;
+  \ If a key event is available, use to calculate a new
+  \ direction; otherwise return the current one.
 
 : lazy ( -- ) delay @ ms ;
 
-: (game) ( -- ) render lazy rudder step
-                apple? if eat-apple then ;
+: eat ( -- ) grow new-apple .apple ;
+  \ If the apple.
+
+: ?eat ( -- ) apple? if eat then ;
+  \ If the apple, if found.
 
 : center-y ( -- row ) rows 2/ ;
+  \ Calculate Y coordinate _row_ of the center of the
+  \ screen.
 
 : center-x ( len -- col ) cols swap - 2/ ;
+  \ Calculate X coordinate _col_ of the center of the
+  \ screen, for a string lenght _len_.
 
 : center-xy ( len -- col row ) center-x center-y ;
+  \ Calculate coordinates _col row_ of the center of the
+  \ screen, for a string lenght _len_.
 
 : at-center-xy ( len -- ) center-xy at-xy ;
+  \ Set cursor at the center of the screen, for a string lenght
+  \ _len_.
 
 : type-center ( ca len -- ) dup at-center-xy type ;
+  \ Display string _ca len_ at the center of the screen.
 
 : +type-center ( ca len n -- )
   >r dup center-xy r> + at-xy type ;
-
-: unhome ( -- ) cols 1- rows 1- at-xy ;
-  \ Set the cursor at the bottom right position of the screen.
+  \ Display string _ca len_ at the center of the screen,
+  \ but adding row offset _n_.
 
 : game-over ( -- ) s" **** GAME OVER **** " type-center unhome
                    2000 ms key drop ;
+
+: (game) ( -- ) .snake lazy rudder crawl ?eat ;
 
 : game ( -- ) begin (game) dead? until game-over ;
 
 : version$ ( -- ca len ) s" Version " version s+ ;
 
-: splash-screen ( -- )
-  page s" ooO SERPENTINO Ooo" -2 +type-center
-                         version$ type-center
-         s" programandala.net" 2 +type-center unhome
-  2000 ms ;
+: title$ ( -- ca len ) s" ooO SERPENTINO Ooo" ;
+
+: author$ ( -- ca len ) s" programandala.net)" ;
+
+: splash-screen ( -- ) page title$ -2 +type-center
+                            version$   type-center
+                            author$ 2 +type-center unhome
+                       2000 ms ;
 
 : run ( -- ) begin splash-screen init game again ;
 
@@ -200,4 +244,4 @@ run
 \ (https://github.com/robertpfeiffer/forthsnake). Change source
 \ style.  Rename words. Factor. Use constants and variables.
 \ Use full screen. Draw the head apart. Document. Simplify
-\ handling of directions.
+\ handling of directions. Remove flickering.

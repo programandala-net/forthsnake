@@ -4,12 +4,11 @@
 
 == 2017-11-22
 
-- Remove flickering: don't clear the screen; update only the head and
-  the last segment of the snake.
 - Increase speed after the length.
-- Update the score (length) only when needed.
 - Make rudder keys configurable.
 - Improve the drawing of the border. Use string constants.
 - Benchmark `." X"` vs ``'X' emit``.
 - Change current speed using the keys of the current and opposite
   directions.
+- Improve the layout of the arena.
+- Mark the clash position.
