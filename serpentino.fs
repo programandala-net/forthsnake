@@ -1,3 +1,14 @@
+\ Serpentino
+\ http://programandala.net
+
+  \ ============================================================
+  \ Credit
+
+  \ Forked on 2017-11-22 from Robert Pfeiffer's forthsnake
+  \ (https://github.com/robertpfeiffer/forthsnake).
+
+  \ ============================================================
+
 : not ( b -- b ) true xor ;
 : myrand ( a b -- r ) over - utime + swap mod + ;
 

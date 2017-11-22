@@ -1,0 +1,14 @@
+# Inner:
+_meta/
+000-info.txt
+
+# Temporary ZX Spectrum emulator snapshots:
+*.szx
+
+# Plus D disk images:
+*.mgt
+
+# Screenshots
+screenshots/
+
+# vim: filetype=config

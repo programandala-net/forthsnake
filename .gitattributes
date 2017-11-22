@@ -1,0 +1,3 @@
+*.fs linguist-language=Forth
+*.fsb linguist-language=Forth
+*.szx binary
