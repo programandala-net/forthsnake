@@ -2,11 +2,17 @@
 
 \ Serpentino
 
-: version s" 0.8.0+201711221710" ;
+: version s" 0.8.0+201711221727" ;
 \ See change log at the end of the file.
 
-\ Description: A simple snake game written in Forth for Gforth
-\ and Solo Forth. Under development.
+\ Description:
+\
+\ A simple snake game written in Forth
+\ (http://forth-standard.org) for Gforth
+\ (http://gnu.org/software/gforth) and (eventually) for Solo
+\ Forth (http://programandala.net/en.program.solo_forth.html).
+\
+\ Under development.
 
 \ Author: Marcos Cruz (programandala.net)
 \ http://programandala.net
@@ -22,7 +28,7 @@
 \ =============================================================
 \ Credit
 
-\ Original code by Robert Pfeiffer:
+\ Original code by Robert Pfeiffer, 2009:
 \ <https://github.com/robertpfeiffer/forthsnake>.
 
 \ ==============================================================
@@ -39,8 +45,8 @@ variable delay
   \ Maximum length of the snake.
 
 cols 2 - constant arena-width
-
-rows 4 - constant arena-height
+rows 3 - constant arena-height
+  \ Size of the arena, not including the wall.
 
 2 cells constant /segment
   \ Size of each snake's segment.
@@ -77,8 +83,9 @@ variable length
 : cross? ( a -- f ) head clash? ;
   \ Does the head cross segment _a_?
 
-: random-coordinates ( -- x y ) 1 arena-width  random-range
-                                1 arena-height random-range ;
+: random-coordinates ( -- col row )
+  1 arena-width  random-range
+  1 arena-height random-range ;
 
 : new-apple ( -- ) random-coordinates apple 2! ;
 
@@ -102,12 +109,16 @@ variable length
   \ n2_.
 
 -1  0 2constant left
+  \ Left direction coordinate increments.
 
  1  0 2constant right
+  \ Right direction coordinate increments.
 
  0  1 2constant down
+  \ Down direction coordinate increments.
 
  0 -1 2constant up
+  \ Up direction coordinate increments.
 
 : wall? ( -- f ) head 2@ 1 arena-height within swap
                          1 arena-width  within and 0= ;
@@ -116,6 +127,7 @@ variable length
 : crossing? ( -- f )
   length @ 1 ?do  i segment cross? if unloop true exit then
              loop false ;
+  \ Is the snake crossing itself?
 
 : apple? ( -- f ) head apple clash? ;
   \ Has the snake found the apple?
@@ -140,6 +152,7 @@ variable length
   \ Display the snake.
 
 : init-arena ( -- ) page .wall .snake .apple .score ;
+  \ Init the arena.
 
 : new-snake ( -- )
   head> off 3 length !
@@ -150,8 +163,10 @@ variable length
   \ and direction).
 
 : init-delay ( -- ) initial-delay delay ! ;
+  \ Init the delay.
 
 : init ( -- ) init-delay new-snake new-apple init-arena ;
+  \ Init the game.
 
 k-down  value down-key
 k-left  value left-key
@@ -184,12 +199,13 @@ k-up    value up-key
   \ direction; otherwise return the current one.
 
 : lazy ( -- ) delay @ ms ;
+  \ Wait the current delay.
 
 : eat ( -- ) grow new-apple .apple ;
-  \ If the apple.
+  \ Eat the apple.
 
 : ?eat ( -- ) apple? if eat then ;
-  \ If the apple, if found.
+  \ If the apple is found, eat it.
 
 : center-y ( -- row ) rows 2/ ;
   \ Calculate Y coordinate _row_ of the center of the
@@ -219,21 +235,25 @@ k-up    value up-key
                    2000 ms key drop ;
 
 : (game) ( -- ) .snake lazy rudder crawl ?eat ;
+  \ Game cycle.
 
 : game ( -- ) begin (game) dead? until game-over ;
+  \ Game loop, until the snake is dead.
 
 : version$ ( -- ca len ) s" Version " version s+ ;
 
 : title$ ( -- ca len ) s" ooO SERPENTINO Ooo" ;
 
-: author$ ( -- ca len ) s" programandala.net)" ;
+: author$ ( -- ca len ) s" programandala.net" ;
 
 : splash-screen ( -- ) page title$ -2 +type-center
                             version$   type-center
                             author$ 2 +type-center unhome
                        2000 ms ;
+  \ Display the splash screen.
 
 : run ( -- ) begin splash-screen init game again ;
+  \ Main, endless loop.
 
 run
 

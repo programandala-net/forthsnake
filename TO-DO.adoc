@@ -12,3 +12,5 @@
   directions.
 - Improve the layout of the arena.
 - Mark the clash position.
+- Move `unhome` to Galope.
+- Use Galope's `random-range`.
