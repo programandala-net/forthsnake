@@ -7,9 +7,10 @@
 
 \ Author: Marcos Cruz (programandala.net)
 \ http://programandala.net
-\ http://github.com/programandala-net/serpentino 
+\ http://github.com/programandala-net/serpentino
 
-\ Last modified 201711221420
+\ Last modified 201711221451
+\ See change log at the end of the file
 
 \ =============================================================
 \ License
@@ -32,15 +33,17 @@ variable delay
   \ Frame delay in ms.
 
 200 constant initial-delay
-  \ Intial value of `delay`, in ms.
+  \ Initial value of `delay`, in ms.
 
 200 constant max-length
+  \ Maximum length of the snake.
 
 cols 2 - constant arena-width
 
 rows 4 - constant arena-height
 
 2 cells constant /segment
+  \ Size of each snake's segment.
 
 create snake  max-length /segment * allot
   \ Snake's segments. Each segment contains its coordinates.
@@ -48,8 +51,8 @@ create snake  max-length /segment * allot
 2variable apple
   \ Coordinates of the apple.
 
-variable head
-  \ Head segment.
+variable head>
+  \ Number of the head segment.
 
 variable length
   \ Snake's current length.
@@ -59,16 +62,17 @@ variable direction
   \ returns the coordinates' increments.
 
 : segment ( n -- a )
-  head @ + max-length mod /segment * snake + ;
+  head> @ + max-length mod /segment * snake + ;
+  \ Convert segment number _n_ to its address _a_.
+
+: head ( -- a ) 0 segment ;
+  \ _a_ is the address of the head segment.
 
 : clash? ( a1 a2 -- f ) 2@ rot 2@ d= ;
   \ Are the coordinates contained in _a1_ equal to the
   \ coordinates contained in _a2_?
 
-: head* ( -- a ) 0 segment ;
-  \ _a_ is the address of the head segment.
-
-: cross? ( a -- f ) head* clash? ;
+: cross? ( a -- f ) head clash? ;
   \ Does the head cross segment _a_?
 
 : random-coordinates ( -- x y ) 1 arena-width  random-range
@@ -84,9 +88,9 @@ variable direction
   \ Update coordinates _x1 y1_ with increments _n1 n2_,
   \ resulting coordinates _x2 y2_.
 
-: move-head ( -- ) head @ 1- max-length mod head ! ;
+: move-head ( -- ) head> @ 1- max-length mod head> ! ;
 
-: step ( n1 n2 -- ) head* 2@ move-head coords+ head* 2! ;
+: step ( n1 n2 -- ) head 2@ move-head coords+ head 2! ;
 
 -1  0 2constant left
 
@@ -96,14 +100,14 @@ variable direction
 
  0 -1 2constant up
 
-: wall? ( -- f ) head* 2@ 1 arena-height within swap
+: wall? ( -- f ) head 2@ 1 arena-height within swap
                           1 arena-width  within and 0= ;
 
 : crossing? ( -- f )
   length @ 1 ?do  i segment cross? if unloop true exit then
              loop false ;
 
-: apple? ( -- f ) head* apple clash? ;
+: apple? ( -- f ) head apple clash? ;
 
 : dead? ( -- f ) wall? crossing? or ;
 
@@ -122,14 +126,13 @@ variable direction
 : render ( -- )
   page .snake .apple .frame cr length @ . ;
 
-: init ( -- )
-  initial-delay delay !
-  0 head !
-  arena-width 2 / arena-height 2 / snake 2!
-  3 3 apple 2!
-  3 length !
+: new-snake ( -- )
+  head> off 3 length !
+  arena-width 2/ arena-height 2/ snake 2!
   ['] up direction !
   left step left step left step left step ;
+
+: init ( -- ) initial-delay delay ! new-snake new-apple ;
 
 : (rudder) ( -- xt )
   key case
@@ -160,10 +163,12 @@ variable direction
 
 : run ( -- ) begin splash-screen init game again ;
 
+run
+
 \ =============================================================
 \ Change log
 
 \ 2017-11-22: Fork from Robert Pfeiffer's forthsnake
 \ (https://github.com/robertpfeiffer/forthsnake). Change source
 \ style.  Rename words. Factor. Use constants and variables.
-\ Use full screen. Draw the head apart.
+\ Use full screen. Draw the head apart. Document.
