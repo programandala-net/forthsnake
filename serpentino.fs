@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.12.0+201711221830" ;
+: version s" 0.13.0+201711221846" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -38,16 +38,26 @@
 variable delay
   \ Crawl delay in ms.
 
-200 constant initial-delay
+192 constant initial-delay
   \ Initial crawl delay in ms.
 
-8 constant acceleration
+4 constant acceleration
   \ Delay decrement.
 
 3 constant initial-length
   \ Initial length of the snake.
 
-200 constant max-length
+512 constant max-max-length
+  \ Limit of the calculated maximum length of the snake, no
+  \ matter the size of the screen. This limit makes sure the
+  \ buffer is big enough, no matter if the size of the screen
+  \ is increased.
+
+: (max-length) ( -- n ) rows cols * 5 / max-max-length min ;
+  \ Return maximum length _n_ of the snake, calculated after
+  \ the current size of the screen.
+
+(max-length) value max-length
   \ Maximum length of the snake.
 
 cols 2 - constant arena-width
@@ -57,7 +67,7 @@ rows 3 - constant arena-height
 2 cells constant /segment
   \ Size of each snake's segment.
 
-create snake  max-length /segment * allot
+create snake  max-max-length /segment * allot
   \ Snake's segments. Each segment contains its coordinates.
 
 2variable apple
@@ -174,7 +184,12 @@ rows 1- constant score-y ( -- row )
 : init-arena ( -- ) page .wall .score .apple .snake ;
   \ Init the arena.
 
+: init-max-length ( -- ) (max-length) to max-length ;
+  \ Init the maximum length of the snake, depending on the
+  \ current size of the screen.
+
 : new-snake ( -- )
+  init-max-length
   head> off initial-length length !
   arena-width 2/ arena-height 2/ snake 2!
   up direction 2!  up crawl up crawl up crawl up crawl ;
