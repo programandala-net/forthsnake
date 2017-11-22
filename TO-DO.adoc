@@ -21,4 +21,4 @@
 
 == 2017-11-23
 
-- Fix width of the arena: it's one character shorter.
+- Flash the record at the end, if changed.

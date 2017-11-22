@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.18.0+201711230045" ;
+: version s" 0.19.0+201711230050" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -73,8 +73,8 @@ variable delay
   \ Coordinates of the top-left of the arena, not including
   \ the wall.
 
-cols 2 - constant arena-width
-rows 3 - constant arena-length
+cols 1-  constant arena-width
+rows 2 - constant arena-length
   \ Size of the arena, not including the wall.
 
 2 cells constant /segment
@@ -129,7 +129,7 @@ rows 1- constant status-y ( -- row )
 : score$ ( -- ca len ) s" Score: " ;
   \ Return the score label _ca len_.
 
-: score-xy ( -- col row ) 0 status-y ;
+: score-xy ( -- col row ) 1 status-y ;
   \ Return the coordinates _col row_ of the score label.
 
 : .score$ ( -- ) score-xy at-xy score$ type ;
@@ -146,7 +146,7 @@ rows 1- constant status-y ( -- row )
   \ Return the record label _ca len_.
 
 : record-xy ( -- col row )
-  [ cols 4 - record$ nip - ] literal status-y ;
+  [ cols 1- 4 - record$ nip - ] literal status-y ;
   \ Return the coordinates _col row_ of the record label.
 
 : .record$ ( -- ) record-xy at-xy record$ type ;
