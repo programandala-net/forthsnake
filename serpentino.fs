@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.17.0+201711222054" ;
+: version s" 0.18.0+201711230045" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -41,6 +41,7 @@ require galope/unhome.fs        \ `unhome`
 \ ==============================================================
 
 variable score
+variable record record off
 
 variable delay
   \ Crawl delay in ms.
@@ -122,21 +123,39 @@ variable length
 : new-apple ( -- ) random-coordinates apple 2! ;
   \ Locate a new apple.
 
-rows 1- constant score-y ( -- row )
+rows 1- constant status-y ( -- row )
   \ Row where the score is displayed.
 
-: score$ ( -- ca len ) s" SCORE " ;
+: score$ ( -- ca len ) s" Score: " ;
   \ Return the score label _ca len_.
 
-: score-xy ( -- col row ) 0 score-y ;
+: score-xy ( -- col row ) 0 status-y ;
   \ Return the coordinates _col row_ of the score label.
 
 : .score$ ( -- ) score-xy at-xy score$ type ;
   \ Display the score label.
 
-: .score ( -- ) [ score-xy >r score$ nip + r> ] 2literal at-xy
-                score @ s>d <# # # # # #> type ;
+: .(score) ( n -- ) s>d <# # # # # #> type ;
+
+: .score ( -- )
+  [ score-xy >r score$ nip + r> ] 2literal at-xy
+  score @ .(score) ;
   \ Display the score.
+
+: record$ ( -- ca len ) s" Record: " ;
+  \ Return the record label _ca len_.
+
+: record-xy ( -- col row )
+  [ cols 4 - record$ nip - ] literal status-y ;
+  \ Return the coordinates _col row_ of the record label.
+
+: .record$ ( -- ) record-xy at-xy record$ type ;
+  \ Display the record label.
+
+: .record ( -- )
+  [ record-xy >r record$ nip + r> ] 2literal at-xy
+  record @ .(score) ;
+  \ Display the record.
 
 : grow ( -- ) length @ 1+ max-length min length ! ;
   \ Grow the snake.
@@ -200,8 +219,10 @@ rows 1- constant score-y ( -- row )
 : .snake ( -- ) .head .neck -tail unhome ;
   \ Display the snake.
 
-: init-arena ( -- )
-  page .wall .score$ .score .apple .snake ;
+: .status ( -- ) .score$ .score .record$ .record ;
+  \ Display the status bar.
+
+: init-arena ( -- ) page .wall .status .apple .snake ;
   \ Init the arena.
 
 : init-max-length ( -- ) (max-length) to max-length ;
@@ -292,8 +313,12 @@ k-up    value up-key
   \ Display string _ca len_ at the center of the screen,
   \ but adding row offset _n_.
 
-: game-over ( -- ) s" **** GAME OVER **** " type-center unhome
-                   500 ms -keys key drop ;
+: update-record ( -- ) score @ record @ max record ! .record ;
+
+: game-over ( -- )
+  update-record
+  s" **** GAME OVER **** " type-center unhome
+  500 ms -keys key drop ;
 
 : (game) ( -- ) .snake lazy rudder crawl ?eat ;
   \ Game cycle.
@@ -327,3 +352,5 @@ run
 \ Use full screen. Draw the head apart. Document. Simplify
 \ handling of directions. Remove flickering. Accelerate the
 \ drawing of the snake. Add an actual scoring.
+\
+\ 2017-11-23: Add record.

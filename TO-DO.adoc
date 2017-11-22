@@ -1,6 +1,6 @@
 = To-do list of Serpentino
 :author: Marcos Cruz (programandala.net)
-:revdate: 2017-11-22
+:revdate: 2017-11-23
 
 == 2017-11-22
 
@@ -18,4 +18,7 @@
   title).
 - Improve the look of the score.
 - Improve scoring: subtract the changings of direction.
-- Add record.
+
+== 2017-11-23
+
+- Fix width of the arena: it's one character shorter.
