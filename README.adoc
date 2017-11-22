@@ -6,8 +6,8 @@
 A simple snake console game, written in
 http://forth-standard.org[Forth,role="external"] for
 http://gnu.org/software/gforth[Gforth,role="external"] and
-http://programandala.net/en.program.solo_forth.html[Solo Forth].
-Under development.
+(eventually) http://programandala.net/en.program.solo_forth.html[Solo
+Forth].  Under development.
 
 Credit: Forked on 2017-11-22 from Robert Pfeiffer's
 https://github.com/robertpfeiffer/forthsnake[forthsnake].

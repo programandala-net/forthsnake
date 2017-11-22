@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.13.0+201711221846" ;
+: version s" 0.14.0+201711221924" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -30,6 +30,11 @@
 
 \ Original code by Robert Pfeiffer, 2009:
 \ <https://github.com/robertpfeiffer/forthsnake>.
+
+\ ==============================================================
+\ Requirements
+
+require galope/unhome.fs \ `unhome`.
 
 \ ==============================================================
 
@@ -166,9 +171,6 @@ rows 1- constant score-y ( -- row )
   arena-width  0 ?do ." +" loop cr ;
   \ Display the wall.
 
-: unhome ( -- ) cols 1- rows 1- at-xy ;
-  \ Set the cursor at the bottom right position of the screen.
-
 : .head ( -- ) head 2@ at-xy ." O" ;
   \ Display the head of the snake.
 
@@ -229,8 +231,8 @@ k-up    value up-key
 
 : rudder ( -- n1 n2 ) ekey? if   (rudder)
                             else direction 2@ then ;
-  \ If a key event is available, use to calculate a new
-  \ direction; otherwise return the current one.
+  \ If a key event is available, use it to calculate a new
+  \ direction _n1 n2_; otherwise return the current one.
 
 : lazy ( -- ) delay @ ms ;
   \ Wait the current delay.

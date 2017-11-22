@@ -11,7 +11,6 @@
   directions.
 - Improve the layout of the arena.
 - Mark the clash position.
-- Move `unhome` to Galope.
 - Use Galope's `random-range`.
 - Fix: remove pending keys at the start.
 - Add pause key.
@@ -21,3 +20,4 @@
 - Improve the look of the score.
 - Create an actual score, the count of eaten apples, minus the
   changings of direction.
+- Add record.
