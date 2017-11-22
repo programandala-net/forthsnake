@@ -9,7 +9,7 @@
 \ http://programandala.net
 \ http://github.com/programandala-net/serpentino 
 
-\ Last modified 201711221336
+\ Last modified 201711221420
 
 \ =============================================================
 \ License
@@ -27,6 +27,12 @@
 \ ==============================================================
 
 : random-range ( n1 n2 -- n3 ) over - utime + swap mod + ;
+
+variable delay
+  \ Frame delay in ms.
+
+200 constant initial-delay
+  \ Intial value of `delay`, in ms.
 
 200 constant max-length
 
@@ -55,8 +61,6 @@ variable direction
 : segment ( n -- a )
   head @ + max-length mod /segment * snake + ;
 
-: pos+ ( x1 y1 x2 y2 -- x3 y3 ) rot + -rot + swap ;
-
 : clash? ( a1 a2 -- f ) 2@ rot 2@ d= ;
   \ Are the coordinates contained in _a1_ equal to the
   \ coordinates contained in _a2_?
@@ -64,21 +68,25 @@ variable direction
 : head* ( -- a ) 0 segment ;
   \ _a_ is the address of the head segment.
 
-: head? ( a -- f ) head* clash? ;
-  \ Does the head clash with segment _a_?
-
-: move-head ( -- ) head @ 1- max-length mod head ! ;
-
-: grow ( -- ) 1 length +! ;
+: cross? ( a -- f ) head* clash? ;
+  \ Does the head cross segment _a_?
 
 : random-coordinates ( -- x y ) 1 arena-width  random-range
                                 1 arena-height random-range ;
 
 : new-apple ( -- ) random-coordinates apple 2! ;
 
+: grow ( -- ) 1 length +! ;
+
 : eat-apple ( -- ) grow new-apple ;
 
-: step! ( xdiff ydiff -- ) head* 2@ move-head pos+ head* 2! ;
+: coords+ ( n1 n2 x1 y1 -- x2 y2 ) rot + -rot + swap ;
+  \ Update coordinates _x1 y1_ with increments _n1 n2_,
+  \ resulting coordinates _x2 y2_.
+
+: move-head ( -- ) head @ 1- max-length mod head ! ;
+
+: step ( n1 n2 -- ) head* 2@ move-head coords+ head* 2! ;
 
 -1  0 2constant left
 
@@ -92,7 +100,7 @@ variable direction
                           1 arena-width  within and 0= ;
 
 : crossing? ( -- f )
-  length @ 1 ?do  i segment head? if unloop true exit then
+  length @ 1 ?do  i segment cross? if unloop true exit then
              loop false ;
 
 : apple? ( -- f ) head* apple clash? ;
@@ -107,7 +115,7 @@ variable direction
 
 : .snake ( -- )
   0 segment 2@ at-xy ." O"
-  length @ 1 ?do i segment 2@ at-xy ." #" loop ;
+  length @ 1 ?do i segment 2@ at-xy ." o" loop ;
 
 : .apple ( -- ) apple 2@ at-xy ." Q" ;
 
@@ -115,12 +123,13 @@ variable direction
   page .snake .apple .frame cr length @ . ;
 
 : init ( -- )
+  initial-delay delay !
   0 head !
   arena-width 2 / arena-height 2 / snake 2!
   3 3 apple 2!
   3 length !
   ['] up direction !
-  left step! left step! left step! left step! ;
+  left step left step left step left step ;
 
 : (rudder) ( -- xt )
   key case
@@ -131,22 +140,25 @@ variable direction
     direction @ swap
   endcase ;
 
-: rudder ( -- n1 n2 )
-  key? if (rudder) direction ! then direction perform ;
+: rudder ( -- n1 n2 ) key? if   (rudder) direction !
+                           then direction perform ;
 
-: (game) ( n -- )
-  render ms rudder step! apple? if eat-apple then ;
+: lazy ( -- ) delay @ ms ;
 
-: game-over ( -- ) ." *** GAME OVER ***" ;
+: (game) ( -- ) render lazy rudder step
+                apple? if eat-apple then ;
 
-: game ( n -- ) begin dup (game) dead? until drop ;
+: type-center ( ca len -- ) cols over - 2/ rows 2/ at-xy type ;
 
-init
+: game-over ( -- ) s" **** GAME OVER **** " type-center
+                   2000 ms key drop ;
 
-page
-." Serpentino"
-2000 ms
-200 game
+: game ( -- ) begin (game) dead? until game-over ;
+
+: splash-screen ( -- )
+  page s" oooO SERPENTINO Oooo" type-center space 2000 ms ;
+
+: run ( -- ) begin splash-screen init game again ;
 
 \ =============================================================
 \ Change log
