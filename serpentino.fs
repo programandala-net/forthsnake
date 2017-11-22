@@ -57,9 +57,8 @@ variable head>
 variable length
   \ Snake's current length.
 
-variable direction
-  \ Snake's current direction, as an execution token that
-  \ returns the coordinates' increments.
+2variable direction
+  \ Snake's current direction, as coordinates' increments.
 
 : segment ( n -- a )
   head> @ + max-length mod /segment * snake + ;
@@ -129,22 +128,22 @@ variable direction
 : new-snake ( -- )
   head> off 3 length !
   arena-width 2/ arena-height 2/ snake 2!
-  ['] up direction !
+  up direction 2!
   left step left step left step left step ;
 
 : init ( -- ) initial-delay delay ! new-snake new-apple ;
 
-: (rudder) ( -- xt )
+: (rudder) ( -- n1 n2 )
   key case
-    '4' of ['] left  endof
-    '6' of ['] up    endof
-    '5' of ['] right endof
-    '7' of ['] down  endof
-    direction @ swap
+    '4' of left  endof
+    '6' of up    endof
+    '5' of right endof
+    '7' of down  endof
+    direction 2@ rot
   endcase ;
 
-: rudder ( -- n1 n2 ) key? if   (rudder) direction !
-                           then direction perform ;
+: rudder ( -- n1 n2 ) key? if   (rudder) 2dup direction 2!
+                           else direction 2@ then ;
 
 : lazy ( -- ) delay @ ms ;
 
@@ -171,4 +170,5 @@ run
 \ 2017-11-22: Fork from Robert Pfeiffer's forthsnake
 \ (https://github.com/robertpfeiffer/forthsnake). Change source
 \ style.  Rename words. Factor. Use constants and variables.
-\ Use full screen. Draw the head apart. Document.
+\ Use full screen. Draw the head apart. Document. Simplify
+\ handling of directions.
