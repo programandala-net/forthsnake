@@ -4,7 +4,6 @@
 
 == 2017-11-22
 
-- Increase speed after the length.
 - Make rudder keys configurable.
 - Improve the drawing of the border. Use string constants.
 - Benchmark `." X"` vs ``'X' emit``.
@@ -14,3 +13,9 @@
 - Mark the clash position.
 - Move `unhome` to Galope.
 - Use Galope's `random-range`.
+- Fix: remove pending keys at the start.
+- Add pause key.
+- Add quit key.
+- Improve layout of the arena (put the status bar at the top and add a
+  title).
+- Improve the look of the score.

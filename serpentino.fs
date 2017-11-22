@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.10.0+201711221754" ;
+: version s" 0.11.0+201711221818" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -41,6 +41,9 @@ variable delay
 200 constant initial-delay
   \ Initial crawl delay in ms.
 
+8 constant acceleration
+  \ Delay decrement.
+
 200 constant max-length
   \ Maximum length of the snake.
 
@@ -75,7 +78,7 @@ variable length
 
 : neck ( -- a ) 1 segment ;
   \ Return address _a_ of the snake's "neck" segment, ie.
-  \ the segment after the head.
+  \ its second segment.
 
 : tail ( -- a ) length @ segment ;
   \ Return address _a_ of the snake's tail segment.
@@ -92,11 +95,15 @@ variable length
   1 arena-height random-range ;
 
 : new-apple ( -- ) random-coordinates apple 2! ;
+  \ Locate a new apple.
 
-: .score ( -- ) 0 rows 1- at-xy length ? ;
+rows 1- constant score-y ( -- row )
+  \ Row where the score is displayed.
+
+: .score ( -- )  0 score-y at-xy length ? ;
   \ Display the score (the current length of the snake).
 
-: grow ( -- ) 1 length +! .score ;
+: grow ( -- ) 1 length +! ;
   \ Grow the snake and update the score.
 
 : .apple ( -- ) apple 2@ at-xy ." Q" ;
@@ -153,8 +160,7 @@ variable length
   \ Display the head of the snake.
 
 : .neck ( -- ) neck 2@ at-xy ." o" ;
-  \ Display the "neck" of the snake, ie. the first segment
-  \ after the head.
+  \ Display the "neck" of the snake, ie. its second segment.
 
 : -tail ( -- ) tail 2@ at-xy space ;
   \ Delete the tail of the snake.
@@ -162,7 +168,7 @@ variable length
 : .snake ( -- ) .head .neck -tail unhome ;
   \ Display the snake.
 
-: init-arena ( -- ) page .wall .snake .apple .score ;
+: init-arena ( -- ) page .wall .score .apple .snake ;
   \ Init the arena.
 
 : new-snake ( -- )
@@ -212,7 +218,10 @@ k-up    value up-key
 : lazy ( -- ) delay @ ms ;
   \ Wait the current delay.
 
-: eat ( -- ) grow new-apple .apple ;
+: faster ( -- ) delay @ acceleration - 0 max delay ! ;
+  \ Decrement the delay.
+
+: eat ( -- ) grow faster .score new-apple .apple ;
   \ Eat the apple.
 
 : ?eat ( -- ) apple? if eat then ;
