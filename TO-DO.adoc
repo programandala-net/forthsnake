@@ -21,3 +21,5 @@
 == 2017-11-23
 
 - Flash the record at the end, if changed.
+- Fix: Make sure the new apple is not located on the snake.
+- Make the new apple flash for a while.

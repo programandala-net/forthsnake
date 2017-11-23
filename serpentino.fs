@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.20.0+201711231922" ;
+: version s" 0.21.0+201711231957" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -94,7 +94,7 @@ variable length
   \ Snake's current length.
 
 2variable direction
-  \ Snake's current direction, as coordinates' increments.
+  \ Snake's current direction (coordinate increments).
 
 : segment ( n -- a )
   head> @ + max-length mod /segment * snake + ;
@@ -165,26 +165,28 @@ rows 1- constant status-y ( -- row )
   \ Display the apple.
 
 : coords+ ( n1 n2 x1 y1 -- x2 y2 ) rot + -rot + swap ;
-  \ Update coordinates _x1 y1_ with increments _n1 n2_,
+  \ Update coordinates _x1 y1_ with direction _n1 n2_,
   \ resulting coordinates _x2 y2_.
 
 : move-head ( -- ) head> @ 1- max-length mod head> ! ;
 
-: crawl ( n1 n2 -- ) head 2@ move-head coords+ head 2! ;
-  \ Update the snake's position with coordinate increments _n1
-  \ n2_.
+: (crawl) ( n1 n2 -- ) head 2@ move-head coords+ head 2! ;
+  \ Make the snake crawl in direction _n1 n2_.
+
+: crawl ( -- ) direction 2@ (crawl) ;
+  \ Make the snake crawl in the current direction.
 
 -1  0 2constant left
-  \ Left direction coordinate increments.
+  \ Left direction (coordinate increments).
 
  1  0 2constant right
-  \ Right direction coordinate increments.
+  \ Right direction (coordinate increments).
 
  0  1 2constant down
-  \ Down direction coordinate increments.
+  \ Down direction (coordinate increments).
 
  0 -1 2constant up
-  \ Up direction coordinate increments.
+  \ Up direction (coordinate increments).
 
 : wall? ( -- f ) head 2@ arena-y arena-length within swap
                          arena-x arena-width  within and 0= ;
@@ -245,49 +247,41 @@ rows 1- constant status-y ( -- row )
   score off init-delay new-snake new-apple init-arena ;
   \ Init the game.
 
+: dodge ( -- ) score ?1-! .score ;
+  \ Decrement the score because of the dodge.
+
+: dodge? ( n1 n2 -- ) direction 2@ rot + -rot + or 0<> ;
+  \ Do new direction _n1 n2_ causes a dodge, ie. does it 
+  \ change the current direction to the left or to the right?
+
+: ?dodge ( n1 n2 -- ) dodge? if dodge then ;
+  \ Manage a possible dodge caused by new direction _n1 n2_.
+
+: new-direction ( n1 n2 -- ) 2dup ?dodge direction 2! ;
+  \ Set new direction _n1 n2_.
+
 k-down  value down-key
 k-left  value left-key
 k-right value right-key
 k-up    value up-key
   \ Keyboard events used as direction keys.
 
-: key>direction ( u -- n1 n2 )
+: manage-key ( u -- )
   case
-    down-key  of down  endof
-    left-key  of left  endof
-    right-key of right endof
-    up-key    of up    endof
-    direction 2@ rot
+    down-key  of down  new-direction endof
+    left-key  of left  new-direction endof
+    right-key of right new-direction endof
+    up-key    of up    new-direction endof
    endcase ;
-   \ If keyboard event _u_ is a valid direction key, return its
-   \ corresponding direction _n1 n2_; otherwise return the
-   \ current direction.
-
-: dodge ( -- ) score ?1-! .score ;
-  \ Decrement the score because of the dodge.
-
-: dodge? ( n1 n2 -- ) direction 2@ rot + -rot + or 0<> ;
-  \ Do direction increments _n1 n2_ are a dodge, ie. do they
-  \ change the current direction to the left or to the right?
-
-: ?dodge ( n1 n2 -- ) dodge? if dodge then ;
-  \ Manage a possible dodge caused by direction increments _n1
-  \ n2_.
+   \ If keyboard event _u_ is a valid key, manage it.
 
 : valid-key? ( -- false | u true  ) ekey ekey>fkey ;
 
-: (rudder) ( -- n1 n2 )
-  valid-key? if   key>direction 2dup ?dodge
-                                2dup direction 2!
-             else direction 2@ then ;
-  \ Use the latest keyboard event to update the current
-  \ direction and return it as _n1 n2_.  If the keyboard event
-  \ is not valid, return the current direction.
+: (rudder) ( -- ) valid-key? if manage-key then ;
+  \ If the pressed key is valid, manage it.
 
-: rudder ( -- n1 n2 ) ekey? if   (rudder)
-                            else direction 2@ then ;
-  \ If a key event is available, use it to calculate a new
-  \ direction _n1 n2_; otherwise return the current one.
+: rudder ( -- ) ekey? if (rudder) then ;
+  \ If there's a key pressed, manage it.
 
 : lazy ( -- ) delay @ ms ;
   \ Wait the current delay.
@@ -369,3 +363,4 @@ run
 \ drawing of the snake. Add an actual scoring.
 \
 \ 2017-11-23: Add record. Improve the scoring calculation.
+\ Improve the keyboard handling to support non-movement keys.
