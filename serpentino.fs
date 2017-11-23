@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.23.0+201711232050" ;
+: version s" 0.24.0+201711232107" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -124,39 +124,49 @@ variable length
 : new-apple ( -- ) random-coordinates apple 2! ;
   \ Locate a new apple.
 
-rows 1- constant status-y ( -- row )
+rows 1- constant status-y
   \ Row where the score is displayed.
 
 : score$ ( -- ca len ) s" Score: " ;
   \ Return the score label _ca len_.
 
-: score-xy ( -- col row ) 1 status-y ;
+1 constant score-label-x
+  \ Column of the score label.
+
+: score-label-xy ( -- col row ) score-label-x status-y ;
   \ Return the coordinates _col row_ of the score label.
 
-: .score$ ( -- ) score-xy at-xy score$ type ;
+: .score$ ( -- ) score-label-xy at-xy score$ type ;
   \ Display the score label.
 
 : .(score) ( n -- ) s>d <# # # # # #> type ;
 
-: .score ( -- )
-  [ score-xy >r score$ nip + r> ] 2literal at-xy
-  score @ .(score)
-  space .s ; \ XXX INFORMER
+: score-xy ( -- col row ) score-label-xy >r score$ nip + r> ;
+  \ Return the coordinates _col row_ of the score.
+
+: .score ( -- ) [ score-xy ] 2literal at-xy
+                score @ .(score)
+                space .s ; \ XXX INFORMER
   \ Display the score.
 
 : record$ ( -- ca len ) s" Record: " ;
   \ Return the record label _ca len_.
 
-: record-xy ( -- col row )
-  [ cols 1- 4 - record$ nip - ] literal status-y ;
+cols 1- 4 - record$ nip - constant record-label-x
+  \ Row of the record label.
+
+: record-label-xy ( -- col row ) record-label-x status-y ;
   \ Return the coordinates _col row_ of the record label.
 
-: .record$ ( -- ) record-xy at-xy record$ type ;
+: .record$ ( -- ) record-label-xy at-xy record$ type ;
   \ Display the record label.
 
-: .record ( -- )
-  [ record-xy >r record$ nip + r> ] 2literal at-xy
-  record @ .(score) ;
+: record-xy ( -- col row )
+  record-label-xy >r record$ nip + r> ;
+  \ Return the coordinates _col row_ of the record.
+
+: .record ( -- ) [ record-xy ] 2literal at-xy
+                 record @ .(score) ;
   \ Display the record.
 
 : grow ( -- ) length @ 1+ max-length min length ! ;
