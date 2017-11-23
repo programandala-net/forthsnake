@@ -26,5 +26,4 @@
   causes a dodge.
 - Use the status bar for messages.
 - Display a message when the game is paused.
-- Improve `valid-key?` with _xchar_ support, rename it and move it to
-  Galope.
+- Move `ekey>` to Galope.

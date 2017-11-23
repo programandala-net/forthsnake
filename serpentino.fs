@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.22.0+201711232015" ;
+: version s" 0.23.0+201711232050" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -140,7 +140,8 @@ rows 1- constant status-y ( -- row )
 
 : .score ( -- )
   [ score-xy >r score$ nip + r> ] 2literal at-xy
-  score @ .(score) ;
+  score @ .(score)
+  space .s ; \ XXX INFORMER
   \ Display the score.
 
 : record$ ( -- ca len ) s" Record: " ;
@@ -236,7 +237,7 @@ rows 1- constant status-y ( -- row )
   init-max-length
   head> off initial-length length !
   arena-width 2/ arena-length 2/ snake 2!
-  up direction 2!  up crawl up crawl up crawl up crawl ;
+  up direction 2! crawl crawl crawl crawl ;
   \ Create a new snake with default values (length, position
   \ and direction).
 
@@ -267,12 +268,16 @@ k-up    value up-key
 bl      value pause-key
   \ Control keys.
 
-: valid-key? ( -- x f )
-  ekey dup ekey>fkey ?dup if nip else ekey>char then ;
+: ekey> ( x -- x|c|u|xc f )
+  dup ekey>char  if nip true exit else drop then
+  dup ekey>fkey  if nip true exit else drop then
+      ekey>xchar ;
 
-: pause ( -- ) begin  valid-key?   while
-                      pause-key <> while
-               repeat then drop ;
+: pause ( -- ) begin
+                 begin ekey?           until false
+                 begin drop ekey ekey> until
+                 pause-key =
+               until ;
   \ Stop the game until the pause key is pressed again.
 
 : manage-key ( x -- )
@@ -283,15 +288,15 @@ bl      value pause-key
     up-key    of up    new-direction endof
     pause-key of pause               endof
    endcase ;
-   \ If _x_ is a supported key, manage it.  _x_ can be a
-   \ keyboard event, a keypress, a character or an extended
-   \ character.
+   \ If _x_ is a supported key, manage it.  _x_ can be
+   \ a keypress, a character or an extended character.
 
-: (rudder) ( -- ) valid-key? if manage-key then ;
-  \ If the pressed key is valid, manage it.
+: (rudder) ( x -- ) ekey> if manage-key else drop then ;
+  \ If keyboard event _x_ i a valid one (a keypress, a
+  \ character or an extended character), manage it.
 
-: rudder ( -- ) ekey? if (rudder) then ;
-  \ If there's a key pressed, manage it.
+: rudder ( -- ) ekey? if ekey (rudder) then ;
+  \ If a keyboard event is available, manage it.
 
 : lazy ( -- ) delay @ ms ;
   \ Wait the current delay.
@@ -360,6 +365,7 @@ bl      value pause-key
 : run ( -- ) begin splash-screen init game again ;
   \ Main, endless loop.
 
+cr cr .( Type RUN to start) cr cr
 run
 
 \ =============================================================
