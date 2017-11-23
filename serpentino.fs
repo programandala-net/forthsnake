@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.21.0+201711231957" ;
+: version s" 0.22.0+201711232015" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -264,18 +264,28 @@ k-down  value down-key
 k-left  value left-key
 k-right value right-key
 k-up    value up-key
-  \ Keyboard events used as direction keys.
+bl      value pause-key
+  \ Control keys.
 
-: manage-key ( u -- )
+: valid-key? ( -- x f )
+  ekey dup ekey>fkey ?dup if nip else ekey>char then ;
+
+: pause ( -- ) begin  valid-key?   while
+                      pause-key <> while
+               repeat then drop ;
+  \ Stop the game until the pause key is pressed again.
+
+: manage-key ( x -- )
   case
     down-key  of down  new-direction endof
     left-key  of left  new-direction endof
     right-key of right new-direction endof
     up-key    of up    new-direction endof
+    pause-key of pause               endof
    endcase ;
-   \ If keyboard event _u_ is a valid key, manage it.
-
-: valid-key? ( -- false | u true  ) ekey ekey>fkey ;
+   \ If _x_ is a supported key, manage it.  _x_ can be a
+   \ keyboard event, a keypress, a character or an extended
+   \ character.
 
 : (rudder) ( -- ) valid-key? if manage-key then ;
   \ If the pressed key is valid, manage it.
@@ -364,3 +374,4 @@ run
 \
 \ 2017-11-23: Add record. Improve the scoring calculation.
 \ Improve the keyboard handling to support non-movement keys.
+\ Add a pause key.

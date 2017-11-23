@@ -12,7 +12,6 @@
 - Improve the layout of the arena.
 - Mark the clash position.
 - Fix: remove pending keys at the start.
-- Add pause key.
 - Add quit key.
 - Improve layout of the arena (put the status bar at the top and add a
   title).
@@ -23,3 +22,9 @@
 - Flash the record at the end, if changed.
 - Fix: Make sure the new apple is not located on the snake.
 - Make the new apple flash for a while.
+- Fix: pressing the cursor key corresponding to the current direction
+  causes a dodge.
+- Use the status bar for messages.
+- Display a message when the game is paused.
+- Improve `valid-key?` with _xchar_ support, rename it and move it to
+  Galope.
