@@ -17,7 +17,6 @@
 - Improve layout of the arena (put the status bar at the top and add a
   title).
 - Improve the look of the score.
-- Improve scoring: subtract the changings of direction.
 
 == 2017-11-23
 

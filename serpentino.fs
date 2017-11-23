@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.19.0+201711230050" ;
+: version s" 0.20.0+201711231922" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -34,9 +34,10 @@
 \ ==============================================================
 \ Requirements
 
-require galope/minus-keys.fs    \ `-keys`
-require galope/random-within.fs \ `random-within`
-require galope/unhome.fs        \ `unhome`
+require galope/minus-keys.fs               \ `-keys`
+require galope/question-one-minus-store.fs \ `?1-!`
+require galope/random-within.fs            \ `random-within`
+require galope/unhome.fs                   \ `unhome`
 
 \ ==============================================================
 
@@ -262,9 +263,23 @@ k-up    value up-key
    \ corresponding direction _n1 n2_; otherwise return the
    \ current direction.
 
+: dodge ( -- ) score ?1-! .score ;
+  \ Decrement the score because of the dodge.
+
+: dodge? ( n1 n2 -- ) direction 2@ rot + -rot + or 0<> ;
+  \ Do direction increments _n1 n2_ are a dodge, ie. do they
+  \ change the current direction to the left or to the right?
+
+: ?dodge ( n1 n2 -- ) dodge? if dodge then ;
+  \ Manage a possible dodge caused by direction increments _n1
+  \ n2_.
+
+: valid-key? ( -- false | u true  ) ekey ekey>fkey ;
+
 : (rudder) ( -- n1 n2 )
-  ekey ekey>fkey if   key>direction 2dup direction 2!
-                 else direction 2@ then ;
+  valid-key? if   key>direction 2dup ?dodge
+                                2dup direction 2!
+             else direction 2@ then ;
   \ Use the latest keyboard event to update the current
   \ direction and return it as _n1 n2_.  If the keyboard event
   \ is not valid, return the current direction.
@@ -280,10 +295,10 @@ k-up    value up-key
 : faster ( -- ) delay @ acceleration - 0 max delay ! ;
   \ Decrement the delay.
 
-: scored ( -- ) 1 score +! .score ;
+: eaten ( -- ) 10 score +! .score ;
   \ Increase and display the score.
 
-: eat ( -- ) grow faster scored new-apple .apple ;
+: eat ( -- ) grow faster eaten new-apple .apple ;
   \ Eat the apple.
 
 : ?eat ( -- ) apple? if eat then ;
@@ -353,4 +368,4 @@ run
 \ handling of directions. Remove flickering. Accelerate the
 \ drawing of the snake. Add an actual scoring.
 \
-\ 2017-11-23: Add record.
+\ 2017-11-23: Add record. Improve the scoring calculation.
