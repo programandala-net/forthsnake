@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.26.0+201711241338" ;
+: version s" 0.27.0+201711241633" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -194,7 +194,11 @@ cols 1- 4 - record$ nip - constant record-label-x
 : grow ( -- ) length @ 1+ max-length min length ! ;
   \ Grow the snake.
 
-: .apple ( -- ) apple 2@ at-xy apple-attr ?attr! ." Q";
+: .(apple) ( -- ) ." Q";
+  \ Just display the apple, without changing the current
+  \ colors, at the current cursor position.
+
+: .apple ( -- ) apple-attr ?attr! apple 2@ at-xy .(apple) ;
   \ Display the apple.
 
 : coords+ ( n1 n2 col1 row1 -- col2 row2 ) rot + -rot + swap ;
@@ -246,7 +250,12 @@ cols 1- 4 - record$ nip - constant record-label-x
 : .head ( -- ) head 2@ at-xy snake-attr ?attr! ." O" ;
   \ Display the head of the snake.
 
-: .neck ( -- ) neck 2@ at-xy snake-attr ?attr! ." o" ;
+variable swallow swallow off
+  \ Flag: has the snake just swallowed an apple?
+
+: .neck ( -- ) neck 2@ at-xy snake-attr ?attr!
+               swallow @ if   .(apple) swallow off
+                         else ." o" then ;
   \ Display the "neck" of the snake, ie. its second segment.
 
 : -tail ( -- ) tail 2@ at-xy space ;
@@ -341,7 +350,7 @@ bl      value pause-key
 : faster ( -- ) delay @ acceleration - 0 max delay ! ;
   \ Decrement the delay.
 
-: eaten ( -- ) 10 score +! .score ;
+: eaten ( -- ) swallow on 10 score +! .score ;
   \ Increase and display the score.
 
 : eat ( -- ) eaten grow faster new-apple .apple ;
