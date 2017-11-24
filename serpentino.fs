@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.27.0+201711241633" ;
+: version s" 0.27.1+201711241700" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -140,7 +140,16 @@ variable length
 : random-xy ( -- col row ) 1 arena-width  random-within
                            1 arena-length random-within ;
 
-: new-apple ( -- ) random-xy apple 2! ;
+: segment? ( col row -- f )
+  length @ 0 ?do     2dup  i segment 2@ d=
+                  if 2drop true  unloop exit then
+             loop    2drop false ;
+  \ Is there a snake's segment at _col row_?
+
+: apple-random-xy ( -- col row )
+  begin random-xy 2dup segment? while 2drop repeat ;
+
+: new-apple ( -- ) apple-random-xy apple 2! ;
   \ Locate a new apple.
 
 0                  constant status-x
@@ -261,8 +270,13 @@ variable swallow swallow off
 : -tail ( -- ) tail 2@ at-xy space ;
   \ Delete the tail of the snake.
 
-: .snake ( -- ) .head .neck -tail unhome ;
-  \ Display the snake.
+: .snake+ ( -- ) .head .neck -tail unhome ;
+  \ Display the snake updated, ie. only the parts that change
+  \ during the crawling.
+
+: .snake ( -- )
+  .head length @ 1 ?do i segment 2@ at-xy ." o" loop ;
+  \ Display the whole snake.
 
 : -status ( -- ) status-attr ?attr!
                  status-xy at-xy cols spaces ;
@@ -390,7 +404,7 @@ bl      value pause-key
   s" **** GAME OVER **** " type-center unhome
   500 ms -keys key drop ;
 
-: (game) ( -- ) .snake lazy rudder crawl ?eat ;
+: (game) ( -- ) .snake+ lazy rudder crawl ?eat ;
   \ Game cycle.
 
 : game ( -- ) begin (game) dead? until game-over ;
@@ -413,7 +427,22 @@ bl      value pause-key
   \ Main, endless loop.
 
 cr cr .( Type RUN to start) cr cr
+
 run
+
+\ =============================================================
+\ Debugging tools
+
+false [if]
+
+: test-on-snake ( -- )
+  init
+  begin key? if key bl = if exit then then
+        random-xy 2dup at-xy segment? if   ." X" key drop
+                                      else ." ." then
+  again ;
+
+[then]
 
 \ =============================================================
 \ Change log

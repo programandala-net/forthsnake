@@ -1,6 +1,6 @@
 = To-do list of Serpentino
 :author: Marcos Cruz (programandala.net)
-:revdate: 2017-11-2t
+:revdate: 2017-11-24
 
 == 2017-11-22
 
@@ -20,7 +20,6 @@
 == 2017-11-23
 
 - Flash the record at the end, if changed.
-- Fix: Make sure the new apple is not located on the snake.
 - Make the new apple flash for a while.
 - Fix: pressing the cursor key corresponding to the current direction
   causes a dodge.
