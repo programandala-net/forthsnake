@@ -2,17 +2,14 @@
 
 \ Serpentino
 
-: version s" 0.24.0+201711232107" ;
+: version s" 0.25.0+201711241243" ;
 \ See change log at the end of the file.
 
 \ Description:
 \
-\ A simple snake game written in Forth
-\ (http://forth-standard.org) for Gforth
-\ (http://gnu.org/software/gforth) and (eventually) for Solo
-\ Forth (http://programandala.net/en.program.solo_forth.html).
-\
-\ Under development.
+\ A text-based snake game under development
+\ written in Forth (http://forth-standard.org)
+\ for Gforth (http://gnu.org/software/gforth).
 
 \ Author: Marcos Cruz (programandala.net)
 \ http://programandala.net
@@ -28,8 +25,8 @@
 \ =============================================================
 \ Credit
 
-\ Original code by Robert Pfeiffer, 2009:
-\ <https://github.com/robertpfeiffer/forthsnake>.
+\ Forked on 2017-11-22 from Robert Pfeiffer's forthsnake
+\ (https://github.com/robertpfeiffer/forthsnake), 2009.
 
 \ ==============================================================
 \ Requirements
@@ -68,6 +65,8 @@ variable delay
 
 (max-length) value max-length
   \ Maximum length of the snake.
+
+0 0 2constant wall-xy
 
 1 constant arena-x
 1 constant arena-y
@@ -117,11 +116,10 @@ variable length
 : cross? ( a -- f ) head clash? ;
   \ Does the head cross segment _a_?
 
-: random-coordinates ( -- col row )
-  1 arena-width  random-within
-  1 arena-length random-within ;
+: random-xy ( -- col row ) 1 arena-width  random-within
+                           1 arena-length random-within ;
 
-: new-apple ( -- ) random-coordinates apple 2! ;
+: new-apple ( -- ) random-xy apple 2! ;
   \ Locate a new apple.
 
 rows 1- constant status-y
@@ -175,9 +173,9 @@ cols 1- 4 - record$ nip - constant record-label-x
 : .apple ( -- ) apple 2@ at-xy ." Q" ;
   \ Display the apple.
 
-: coords+ ( n1 n2 x1 y1 -- x2 y2 ) rot + -rot + swap ;
-  \ Update coordinates _x1 y1_ with direction _n1 n2_,
-  \ resulting coordinates _x2 y2_.
+: coords+ ( n1 n2 col1 row1 -- col2 row2 ) rot + -rot + swap ;
+  \ Update coordinates _col1 row1_ with direction _n1 n2_,
+  \ resulting coordinates _col2 row2_.
 
 : move-head ( -- ) head> @ 1- max-length mod head> ! ;
 
@@ -215,7 +213,7 @@ cols 1- 4 - record$ nip - constant record-label-x
   \ Is the snake dead?
 
 : .wall ( -- )
-  0 0 at-xy
+  wall-xy at-xy
   arena-width  0 ?do ." +" loop
   arena-length 0 ?do arena-width i at-xy ." +" cr ." +" loop
   arena-width  0 ?do ." +" loop cr ;
@@ -317,7 +315,7 @@ bl      value pause-key
 : eaten ( -- ) 10 score +! .score ;
   \ Increase and display the score.
 
-: eat ( -- ) grow faster eaten new-apple .apple ;
+: eat ( -- ) eaten grow faster new-apple .apple ;
   \ Eat the apple.
 
 : ?eat ( -- ) apple? if eat then ;

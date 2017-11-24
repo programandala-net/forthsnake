@@ -27,4 +27,9 @@
 - Use the status bar for messages.
 - Display a message when the game is paused.
 - Move `ekey>` to Galope.
-- Make ASCII/Unicode mode configurable.
+- ASCII/Unicode modes.
+
+== 2017-11-24
+
+- Color mode.
+- Separate wall size from arena size.
