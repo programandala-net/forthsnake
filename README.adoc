@@ -1,13 +1,12 @@
 == Serpentino
 :author: Marcos Cruz (programandala.net)
-:revdate: 2017-11-22
+:revdate: 2017-11-24
 :linkattrs:
 
-A simple snake console game, written in
+A text-based snake game under development written in
 http://forth-standard.org[Forth,role="external"] for
-http://gnu.org/software/gforth[Gforth,role="external"] and
-(eventually) http://programandala.net/en.program.solo_forth.html[Solo
-Forth].  Under development.
+http://gnu.org/software/gforth[Gforth,role="external"] (Gforth 0.7.9
+required).
 
-Credit: Forked on 2017-11-22 from Robert Pfeiffer's
-https://github.com/robertpfeiffer/forthsnake[forthsnake].
+Credit: Forked on 2017-11-22 from the initial commit of Robert
+Pfeiffer's https://github.com/robertpfeiffer/forthsnake[forthsnake].

@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.28.0+201711241723" ;
+: version s" 0.28.0+201711241732" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -25,7 +25,8 @@
 \ =============================================================
 \ Credit
 
-\ Forked on 2017-11-22 from Robert Pfeiffer's forthsnake
+\ Forked on 2017-11-22 from the initial commit of Robert
+\ Pfeiffer's forthsnake
 \ (https://github.com/robertpfeiffer/forthsnake), 2009.
 
 \ ==============================================================
