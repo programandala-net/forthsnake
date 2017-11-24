@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.25.0+201711241243" ;
+: version s" 0.26.0+201711241338" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -31,6 +31,12 @@
 \ ==============================================================
 \ Requirements
 
+\ From Gforth
+
+require colorize.fs
+
+\ From Galope
+
 require galope/minus-keys.fs               \ `-keys`
 require galope/question-one-minus-store.fs \ `?1-!`
 require galope/random-within.fs            \ `random-within`
@@ -38,8 +44,23 @@ require galope/unhome.fs                   \ `unhome`
 
 \ ==============================================================
 
+variable colorize colorize on
+  \ Flag.
+
+<a black >bg red   >fg a> value apple-attr
+<a black >bg           a> value arena-attr
+<a black >bg green >fg a> value snake-attr
+<a black >bg           a> value status-attr
+<a black >bg green >fg a> value text-attr
+<a black >bg white >fg a> value wall-attr
+  \ Color attributes.
+
+: ?attr! ( x -- ) colorize @ if attr! else drop then ;
+  \ If `colorize` is non-zero, set color attribute _x_.
+
 variable score
 variable record record off
+  \ Counters.
 
 variable delay
   \ Crawl delay in ms.
@@ -122,29 +143,31 @@ variable length
 : new-apple ( -- ) random-xy apple 2! ;
   \ Locate a new apple.
 
-rows 1- constant status-y
-  \ Row where the score is displayed.
+0                  constant status-x
+rows 1-            constant status-y
+status-x status-y 2constant status-xy
+  \ Coordinates of the status bar.
 
 : score$ ( -- ca len ) s" Score: " ;
   \ Return the score label _ca len_.
 
-1 constant score-label-x
+status-x 1+ constant score-label-x
   \ Column of the score label.
 
 : score-label-xy ( -- col row ) score-label-x status-y ;
   \ Return the coordinates _col row_ of the score label.
 
-: .score$ ( -- ) score-label-xy at-xy score$ type ;
+: .score$ ( -- ) text-attr ?attr!
+                 score-label-xy at-xy score$ type ;
   \ Display the score label.
 
-: .(score) ( n -- ) s>d <# # # # # #> type ;
+: .(score) ( n -- ) text-attr ?attr! s>d <# # # # # #> type ;
 
 : score-xy ( -- col row ) score-label-xy >r score$ nip + r> ;
   \ Return the coordinates _col row_ of the score.
 
 : .score ( -- ) [ score-xy ] 2literal at-xy
-                score @ .(score)
-                space .s ; \ XXX INFORMER
+                score @ .(score) ;
   \ Display the score.
 
 : record$ ( -- ca len ) s" Record: " ;
@@ -156,7 +179,8 @@ cols 1- 4 - record$ nip - constant record-label-x
 : record-label-xy ( -- col row ) record-label-x status-y ;
   \ Return the coordinates _col row_ of the record label.
 
-: .record$ ( -- ) record-label-xy at-xy record$ type ;
+: .record$ ( -- ) text-attr ?attr!
+                  record-label-xy at-xy record$ type ;
   \ Display the record label.
 
 : record-xy ( -- col row )
@@ -170,7 +194,7 @@ cols 1- 4 - record$ nip - constant record-label-x
 : grow ( -- ) length @ 1+ max-length min length ! ;
   \ Grow the snake.
 
-: .apple ( -- ) apple 2@ at-xy ." Q" ;
+: .apple ( -- ) apple 2@ at-xy apple-attr ?attr! ." Q";
   \ Display the apple.
 
 : coords+ ( n1 n2 col1 row1 -- col2 row2 ) rot + -rot + swap ;
@@ -213,16 +237,16 @@ cols 1- 4 - record$ nip - constant record-label-x
   \ Is the snake dead?
 
 : .wall ( -- )
-  wall-xy at-xy
+  wall-xy at-xy wall-attr ?attr!
   arena-width  0 ?do ." +" loop
   arena-length 0 ?do arena-width i at-xy ." +" cr ." +" loop
   arena-width  0 ?do ." +" loop cr ;
   \ Display the wall.
 
-: .head ( -- ) head 2@ at-xy ." O" ;
+: .head ( -- ) head 2@ at-xy snake-attr ?attr! ." O" ;
   \ Display the head of the snake.
 
-: .neck ( -- ) neck 2@ at-xy ." o" ;
+: .neck ( -- ) neck 2@ at-xy snake-attr ?attr! ." o" ;
   \ Display the "neck" of the snake, ie. its second segment.
 
 : -tail ( -- ) tail 2@ at-xy space ;
@@ -231,10 +255,15 @@ cols 1- 4 - record$ nip - constant record-label-x
 : .snake ( -- ) .head .neck -tail unhome ;
   \ Display the snake.
 
-: .status ( -- ) .score$ .score .record$ .record ;
+: -status ( -- ) status-attr ?attr!
+                 status-xy at-xy cols spaces ;
+  \ Clear the status bar.
+
+: .status ( -- ) -status .score$ .score .record$ .record ;
   \ Display the status bar.
 
-: init-arena ( -- ) page .wall .status .apple .snake ;
+: init-arena ( -- ) arena-attr ?attr! page
+                    .wall .status .apple .snake ;
   \ Init the arena.
 
 : init-max-length ( -- ) (max-length) to max-length ;
@@ -364,7 +393,8 @@ bl      value pause-key
 
 : author$ ( -- ca len ) s" programandala.net" ;
 
-: splash-screen ( -- ) page title$ -2 +type-center
+: splash-screen ( -- ) text-attr ?attr!
+                       page title$ -2 +type-center
                             version$   type-center
                             author$ 2 +type-center unhome
                        2000 ms ;

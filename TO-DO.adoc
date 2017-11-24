@@ -1,6 +1,6 @@
 = To-do list of Serpentino
 :author: Marcos Cruz (programandala.net)
-:revdate: 2017-11-23
+:revdate: 2017-11-24
 
 == 2017-11-22
 
@@ -31,5 +31,9 @@
 
 == 2017-11-24
 
-- Color mode.
+- Make `colorize` configurable at the start.
 - Separate wall size from arena size.
+- Color schemes in files.
+- Make eaten apples visible in the body.
+- Separate stamina from score; decrease stamina after every step and
+  change of direction.
