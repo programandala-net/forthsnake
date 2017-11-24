@@ -25,7 +25,6 @@
   causes a dodge.
 - Use the status bar for messages.
 - Display a message when the game is paused.
-- Move `ekey>` to Galope.
 - ASCII/Unicode modes.
 
 == 2017-11-24

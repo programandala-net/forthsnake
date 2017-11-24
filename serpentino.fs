@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.27.1+201711241700" ;
+: version s" 0.28.0+201711241723" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -37,6 +37,7 @@ require colorize.fs
 
 \ From Galope
 
+require galope/e-key-to.fs                 \ `ekey>`
 require galope/minus-keys.fs               \ `-keys`
 require galope/question-one-minus-store.fs \ `?1-!`
 require galope/random-within.fs            \ `random-within`
@@ -312,7 +313,7 @@ variable swallow swallow off
   \ Decrement the score because of the dodge.
 
 : dodge? ( n1 n2 -- ) direction 2@ rot + -rot + or 0<> ;
-  \ Do new direction _n1 n2_ causes a dodge, ie. does it 
+  \ Do new direction _n1 n2_ causes a dodge, ie. does it
   \ change the current direction to the left or to the right?
 
 : ?dodge ( n1 n2 -- ) dodge? if dodge then ;
@@ -327,11 +328,6 @@ k-right value right-key
 k-up    value up-key
 bl      value pause-key
   \ Control keys.
-
-: ekey> ( x -- x|c|u|xc f )
-  dup ekey>char  if nip true exit else drop then
-  dup ekey>fkey  if nip true exit else drop then
-      ekey>xchar ;
 
 : pause ( -- ) begin
                  begin ekey?           until false
