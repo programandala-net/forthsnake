@@ -9,4 +9,5 @@ http://gnu.org/software/gforth[Gforth,role="external"] (Gforth 0.7.9
 required).
 
 Credit: Forked on 2017-11-22 from the initial commit of Robert
-Pfeiffer's https://github.com/robertpfeiffer/forthsnake[forthsnake].
+Pfeiffer's
+https://github.com/robertpfeiffer/forthsnake[forthsnake,role="external"].

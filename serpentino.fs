@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.28.0+201711241732" ;
+: version s" 0.29.0+201711250221" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -51,6 +51,7 @@ variable colorize colorize on
 
 <a black >bg red   >fg a> value apple-attr
 <a black >bg           a> value arena-attr
+<a black >bg red   >fg a> value crush-attr
 <a black >bg green >fg a> value snake-attr
 <a black >bg           a> value status-attr
 <a black >bg green >fg a> value text-attr
@@ -111,6 +112,9 @@ create snake  max-max-length /segment * allot
 
 variable head>
   \ Number of the head segment.
+
+2variable previous-head
+  \ Coordinates of the head before crawling.
 
 variable length
   \ Snake's current length.
@@ -218,7 +222,8 @@ cols 1- 4 - record$ nip - constant record-label-x
 
 : move-head ( -- ) head> @ 1- max-length mod head> ! ;
 
-: (crawl) ( n1 n2 -- ) head 2@ move-head coords+ head 2! ;
+: (crawl) ( n1 n2 -- )
+  head 2@ 2dup previous-head 2! move-head coords+ head 2! ;
   \ Make the snake crawl in direction _n1 n2_.
 
 : crawl ( -- ) direction 2@ (crawl) ;
@@ -238,18 +243,19 @@ cols 1- 4 - record$ nip - constant record-label-x
 
 : wall? ( -- f ) head 2@ arena-y arena-length within swap
                          arena-x arena-width  within and 0= ;
-  \ Has the snake crash the wall?
+  \ Has the snake hit the wall?
+
+: crush ( -- ) previous-head 2@ at-xy crush-attr ?attr! ." X" ;
 
 : crossing? ( -- f )
-  length @ 1 ?do  i segment cross? if unloop true exit then
+  length @ 1 ?do  i segment cross?  if unloop true exit then
              loop false ;
   \ Is the snake crossing itself?
 
 : apple? ( -- f ) head apple clash? ;
   \ Has the snake found the apple?
 
-: dead? ( -- f ) wall? crossing? or ;
-  \ Is the snake dead?
+: crush? ( -- f ) wall? crossing? or ;
 
 : .wall ( -- )
   wall-xy at-xy wall-attr ?attr!
@@ -404,8 +410,8 @@ bl      value pause-key
 : (game) ( -- ) .snake+ lazy rudder crawl ?eat ;
   \ Game cycle.
 
-: game ( -- ) begin (game) dead? until game-over ;
-  \ Game loop, until the snake is dead.
+: game ( -- ) begin (game) crush? until crush game-over ;
+  \ Game loop.
 
 : version$ ( -- ca len ) s" Version " version s+ ;
 

@@ -10,7 +10,6 @@
 - Change current speed using the keys of the current and opposite
   directions.
 - Improve the layout of the arena.
-- Mark the clash position.
 - Fix: remove pending keys at the start.
 - Add quit key.
 - Improve layout of the arena (put the status bar at the top and add a
@@ -34,3 +33,5 @@
 - Color schemes in files.
 - Separate stamina from score; decrease stamina after every step and
   change of direction.
+- Viewport.
+- Start menu.
