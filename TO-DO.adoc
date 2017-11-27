@@ -1,6 +1,6 @@
 = To-do list of Serpentino
 :author: Marcos Cruz (programandala.net)
-:revdate: 2017-11-24
+:revdate: 2017-11-27
 
 == 2017-11-22
 
@@ -35,3 +35,9 @@
   change of direction.
 - Viewport.
 - Start menu.
+
+== 2017-11-27
+
+- Fix: the snake is ruined when its length is the maximum. Test
+  setting `max-max-length` to a small number.
+- Fix: improve the pause after game over.

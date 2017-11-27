@@ -2,7 +2,7 @@
 
 \ Serpentino
 
-: version s" 0.29.0+201711250221" ;
+: version s" 0.30.0+201711270118" ;
 \ See change log at the end of the file.
 
 \ Description:
@@ -38,10 +38,11 @@ require colorize.fs
 
 \ From Galope
 
+require galope/between.fs                  \ `between`
 require galope/e-key-to.fs                 \ `ekey>`
 require galope/minus-keys.fs               \ `-keys`
 require galope/question-one-minus-store.fs \ `?1-!`
-require galope/random-within.fs            \ `random-within`
+require galope/random-between.fs           \ `random-between`
 require galope/unhome.fs                   \ `unhome`
 
 \ ==============================================================
@@ -74,7 +75,31 @@ variable delay
 4 constant acceleration
   \ Delay decrement.
 
-3 constant initial-length
+cols 2 - constant arena-cols
+rows 4 - constant arena-rows
+  \ Size of the arena.
+
+cols arena-cols - 2/ constant arena-x
+rows arena-rows - 2/ constant arena-y
+  \ Coordinates of the top-left corner of the arena.
+
+arena-x arena-cols + 1- constant arena-max-x
+arena-y arena-rows + 1- constant arena-max-y
+  \ Coordinates of the bottom-right corner of the arena.
+
+arena-x 1- constant wall-x
+arena-y 1- constant wall-y
+  \ Coordinates of the top-left corner of the wall.
+
+arena-max-x 1+ constant wall-max-x
+arena-max-y 1+ constant wall-max-y
+  \ Coordinates of the bottom-right corner of the wall.
+
+wall-max-x wall-x - 1+ constant wall-cols
+wall-max-y wall-y - 1+ constant wall-rows
+  \ Size of the wall.
+
+4 constant initial-length
   \ Initial length of the snake.
 
 512 constant max-max-length
@@ -83,23 +108,13 @@ variable delay
   \ buffer is big enough, no matter if the size of the screen
   \ is increased.
 
-: (max-length) ( -- n ) rows cols * 5 / max-max-length min ;
+: (max-length) ( -- n )
+  arena-rows arena-cols * 5 / max-max-length min ;
   \ Return maximum length _n_ of the snake, calculated after
-  \ the current size of the screen.
+  \ the size of the arena.
 
 (max-length) value max-length
   \ Maximum length of the snake.
-
-0 0 2constant wall-xy
-
-1 constant arena-x
-1 constant arena-y
-  \ Coordinates of the top-left of the arena, not including
-  \ the wall.
-
-cols 1-  constant arena-width
-rows 2 - constant arena-length
-  \ Size of the arena, not including the wall.
 
 2 cells constant /segment
   \ Size of each snake's segment.
@@ -143,8 +158,8 @@ variable length
 : cross? ( a -- f ) head clash? ;
   \ Does the head cross segment _a_?
 
-: random-xy ( -- col row ) 1 arena-width  random-within
-                           1 arena-length random-within ;
+: random-xy ( -- col row ) arena-x arena-max-x random-between
+                           arena-y arena-max-y random-between ;
 
 : segment? ( col row -- f )
   length @ 0 ?do     2dup  i segment 2@ d=
@@ -158,52 +173,55 @@ variable length
 : new-apple ( -- ) apple-random-xy apple 2! ;
   \ Locate a new apple.
 
-0                  constant status-x
-rows 1-            constant status-y
-status-x status-y 2constant status-xy
+wall-x             constant status-x
+wall-max-y 1+      constant status-y
+wall-max-x         constant status-max-x
   \ Coordinates of the status bar.
+
+status-max-x status-x - 1+ constant status-cols
+  \ Columns of the status bar.
 
 : score$ ( -- ca len ) s" Score: " ;
   \ Return the score label _ca len_.
 
 status-x 1+ constant score-label-x
-  \ Column of the score label.
+status-y    constant score-label-y
+  \ Coordinates of the score label.
 
-: score-label-xy ( -- col row ) score-label-x status-y ;
-  \ Return the coordinates _col row_ of the score label.
-
-: .score$ ( -- ) text-attr ?attr!
-                 score-label-xy at-xy score$ type ;
+: .score$ ( -- )
+  text-attr ?attr!
+  score-label-x score-label-y at-xy score$ type ;
   \ Display the score label.
 
-: .(score) ( n -- ) text-attr ?attr! s>d <# # # # # #> type ;
+4 constant digits
 
-: score-xy ( -- col row ) score-label-xy >r score$ nip + r> ;
+: .(score) ( n -- )
+  text-attr ?attr! s>d <# digits 0 ?do # loop #> type ;
+
+: score-xy ( -- col row )
+  score-label-x score$ nip + score-label-y ;
   \ Return the coordinates _col row_ of the score.
 
-: .score ( -- ) [ score-xy ] 2literal at-xy
-                score @ .(score) ;
+: .score ( -- ) score-xy at-xy score @ .(score) ;
   \ Display the score.
 
 : record$ ( -- ca len ) s" Record: " ;
   \ Return the record label _ca len_.
 
-cols 1- 4 - record$ nip - constant record-label-x
-  \ Row of the record label.
+wall-max-x 1- digits - record$ nip - constant record-label-x
+status-y                             constant record-label-y
+  \ Coordinates of the record label.
 
-: record-label-xy ( -- col row ) record-label-x status-y ;
-  \ Return the coordinates _col row_ of the record label.
-
-: .record$ ( -- ) text-attr ?attr!
-                  record-label-xy at-xy record$ type ;
+: .record$ ( -- )
+  text-attr ?attr!
+  record-label-x record-label-y at-xy record$ type ;
   \ Display the record label.
 
 : record-xy ( -- col row )
-  record-label-xy >r record$ nip + r> ;
+  record-label-x record$ nip + record-label-y ;
   \ Return the coordinates _col row_ of the record.
 
-: .record ( -- ) [ record-xy ] 2literal at-xy
-                 record @ .(score) ;
+: .record ( -- ) record-xy at-xy record @ .(score) ;
   \ Display the record.
 
 : grow ( -- ) length @ 1+ max-length min length ! ;
@@ -241,8 +259,11 @@ cols 1- 4 - record$ nip - constant record-label-x
  0 -1 2constant up
   \ Up direction (coordinate increments).
 
-: wall? ( -- f ) head 2@ arena-y arena-length within swap
-                         arena-x arena-width  within and 0= ;
+: at-arena? ( col row -- f ) arena-y arena-max-y between swap
+                             arena-x arena-max-x between and ;
+  \ Are coordinates _col row_ at the arena?
+
+: wall? ( -- f ) head 2@ at-arena? 0= ;
   \ Has the snake hit the wall?
 
 : crush ( -- ) previous-head 2@ at-xy crush-attr ?attr! ." X" ;
@@ -257,11 +278,14 @@ cols 1- 4 - record$ nip - constant record-label-x
 
 : crush? ( -- f ) wall? crossing? or ;
 
+: .horizontal-wall ( -- ) wall-max-x 1+ wall-x ?do ." +" loop ;
+
 : .wall ( -- )
-  wall-xy at-xy wall-attr ?attr!
-  arena-width  0 ?do ." +" loop
-  arena-length 0 ?do arena-width i at-xy ." +" cr ." +" loop
-  arena-width  0 ?do ." +" loop cr ;
+  wall-attr ?attr!
+  wall-x wall-y at-xy .horizontal-wall
+  arena-max-y 1+ arena-y ?do wall-x     i at-xy ." +"
+                             wall-max-x i at-xy ." +" loop
+  wall-x wall-max-y at-xy .horizontal-wall ;
   \ Display the wall.
 
 : .head ( -- ) head 2@ at-xy snake-attr ?attr! ." O" ;
@@ -287,7 +311,7 @@ variable swallow swallow off
   \ Display the whole snake.
 
 : -status ( -- ) status-attr ?attr!
-                 status-xy at-xy cols spaces ;
+                 status-x status-y at-xy status-cols spaces ;
   \ Clear the status bar.
 
 : .status ( -- ) -status .score$ .score .record$ .record ;
@@ -302,10 +326,9 @@ variable swallow swallow off
   \ current size of the screen.
 
 : new-snake ( -- )
-  init-max-length
-  head> off initial-length length !
-  arena-width 2/ arena-length 2/ snake 2!
-  up direction 2! crawl crawl crawl crawl ;
+  init-max-length  initial-length length !
+  head> off  cols 2/ rows 2/ head 2!
+  up direction 2!  length @ 0 ?do crawl loop ;
   \ Create a new snake with default values (length, position
   \ and direction).
 
@@ -429,7 +452,7 @@ bl      value pause-key
 : run ( -- ) begin splash-screen init game again ;
   \ Main, endless loop.
 
-cr cr .( Type RUN to start) cr cr
+cr cr .( Type RUN to start) cr cr \ XXX TMP --
 
 run
 
